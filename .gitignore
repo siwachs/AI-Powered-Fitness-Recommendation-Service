@@ -1,0 +1,15 @@
+### IntelliJ ###
+.idea/
+*.iml
+
+### VS Code ###
+.vscode/
+
+### Eclipse ###
+.project
+.classpath
+.settings/
+
+### OS ###
+.DS_Store
+Thumbs.db
