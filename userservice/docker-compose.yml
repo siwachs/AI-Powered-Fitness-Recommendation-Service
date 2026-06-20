@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
 
   postgres:
@@ -8,7 +6,7 @@ services:
     container_name: postgres
 
     environment:
-      POSTGRES_DB: fitness
+      POSTGRES_DB: userdb
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
 
