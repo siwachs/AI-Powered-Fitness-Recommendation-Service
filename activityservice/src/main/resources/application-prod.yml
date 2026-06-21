@@ -2,3 +2,8 @@ spring:
   data:
     mongodb:
       uri: ${MONGO_URI}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVICE_URL}

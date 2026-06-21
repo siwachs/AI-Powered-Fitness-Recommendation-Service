@@ -53,4 +53,10 @@ public class ActivityService {
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
+
+    public ActivityResponse getActivity(UUID id) {
+        return repository.findById(id)
+                .map(this::toResponse)
+                .orElseThrow(() -> new RuntimeException("Activity Not found with id: " + id));
+    }
 }
