@@ -7,6 +7,10 @@ import com.fitness.activityservice.repository.ActivityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class ActivityService {
@@ -40,5 +44,13 @@ public class ActivityService {
         Activity savedActivity = repository.save(activity);
 
         return toResponse(savedActivity);
+    }
+
+    public List<ActivityResponse> getUserActivities(UUID userId) {
+        List<Activity> activities = repository.findByUserId(userId);
+
+        return activities.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 }
