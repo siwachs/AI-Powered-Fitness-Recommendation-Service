@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: activityservice
+
+  server:
+    port: 8081
+
+  profiles:
+    active: dev

@@ -28,15 +28,15 @@ public class UserService {
     }
 
     public UserResponse registerUser(RegisterRequest request) {
-        if (repository.existsByEmail(registerRequest.getEmail())) {
+        if (repository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
 
         User user = new User();
-        user.setEmail(registerRequest.getEmail());
-        user.setPassword(registerRequest.getPassword());
-        user.setFirstName(registerRequest.getFirstName());
-        user.setLastName(registerRequest.getLastName());
+        user.setEmail(request.getEmail());
+        user.setPassword(request.getPassword());
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
 
         return toResponse(repository.save(user));
     }
