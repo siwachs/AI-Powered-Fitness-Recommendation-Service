@@ -5,12 +5,14 @@ import com.fitness.userservice.dto.response.UserResponse;
 import com.fitness.userservice.entity.User;
 import com.fitness.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
     private final UserRepository repository;
 
@@ -46,5 +48,10 @@ public class UserService {
                 repository.findById(userId)
                         .orElseThrow(() -> new RuntimeException("This user does not exist"))
         );
+    }
+
+    public Boolean existByUserId(UUID userId) {
+        log.info("Calling User validation API for userId: {}", userId);
+        return repository.existsById(userId);
     }
 }
