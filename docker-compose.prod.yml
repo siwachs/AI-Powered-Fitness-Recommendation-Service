@@ -1,0 +1,77 @@
+services:
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mongodb:
+    image: mongo:8
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: fitness_mongo
+      MONGO_INITDB_ROOT_PASSWORD: replace_me
+    volumes:
+      - mongo_data:/data/db
+
+  eureka-server:
+    build:
+      context: ./eureka-server
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+
+  user-service:
+    build:
+      context: ./userservice
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      - postgres
+      - eureka-server
+
+  activity-service:
+    build:
+      context: ./activityservice
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      - mongodb
+      - eureka-server
+
+  ai-service:
+    build:
+      context: ./aiservice
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      - mongodb
+      - eureka-server
+
+volumes:
+  postgres_data:
+  mongo_data:

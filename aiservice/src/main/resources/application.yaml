@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: ai-service
+
+  profiles:
+    active: dev
+
+server:
+  port: 8083

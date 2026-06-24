@@ -8,11 +8,7 @@ spring:
     hibernate:
       ddl-auto: validate
 
-logging:
-  level:
-    root: INFO
-
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_SERVICE_URL}
+      defaultZone: ${EUREKA_URL}
