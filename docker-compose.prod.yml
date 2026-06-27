@@ -1,16 +1,35 @@
+name: fitness-prod
+
+networks:
+  fitness-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mongo_data:
+
 services:
 
   postgres:
-    image: postgres:16
+    image: postgres:16-alpine
     restart: unless-stopped
     env_file:
       - .env.prod
     environment:
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - fitness-net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
 
   mongodb:
     image: mongo:8
@@ -18,60 +37,140 @@ services:
     env_file:
       - .env.prod
     environment:
-      MONGO_INITDB_ROOT_USERNAME: fitness_mongo
-      MONGO_INITDB_ROOT_PASSWORD: replace_me
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     volumes:
       - mongo_data:/data/db
+      - ./docker/mongodb/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - fitness-net
+    healthcheck:
+      test: [
+        "CMD", "mongosh",
+        "-u", "${MONGO_ROOT_USER}",
+        "-p", "${MONGO_ROOT_PASSWORD}",
+        "--authenticationDatabase", "admin",
+        "--eval", "db.adminCommand('ping').ok"
+      ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   eureka-server:
+    image: ${DOCKER_REGISTRY}/fitness-eureka-server:${IMAGE_TAG}
     build:
-      context: ./eureka-server
+      context: ./eurekaservice
+      dockerfile: Dockerfile
     restart: unless-stopped
-    ports:
-      - "8761:8761"
+    networks:
+      - fitness-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/" ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
 
   user-service:
+    image: ${DOCKER_REGISTRY}/fitness-user-service:${IMAGE_TAG}
     build:
       context: ./userservice
+      dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
       - .env.prod
-    ports:
-      - "8081:8081"
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      USER_SERVICE_DB_HOST: postgres
+      USER_SERVICE_DB_PORT: 5432
+      USER_SERVICE_DB_NAME: userdb
+      USER_SERVICE_DB_USER: ${USER_SERVICE_DB_USER}
+      USER_SERVICE_DB_PASSWORD: ${USER_SERVICE_DB_PASSWORD}
+      USER_SERVICE_DDL_AUTO: validate
+      EUREKA_URL: ${EUREKA_URL}
+    ports:
+      - "127.0.0.1:8081:8081"
+    networks:
+      - fitness-net
     depends_on:
-      - postgres
-      - eureka-server
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health/readiness" ]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
 
   activity-service:
+    image: ${DOCKER_REGISTRY}/fitness-activity-service:${IMAGE_TAG}
     build:
       context: ./activityservice
+      dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
       - .env.prod
-    ports:
-      - "8082:8082"
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      ACTIVITY_SERVICE_MONGO_URI: ${ACTIVITY_SERVICE_MONGO_URI}
+      EUREKA_URL: ${EUREKA_URL}
+    ports:
+      - "127.0.0.1:8082:8082"
+    networks:
+      - fitness-net
     depends_on:
-      - mongodb
-      - eureka-server
+      mongodb:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8082/actuator/health/readiness" ]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
 
   ai-service:
+    image: ${DOCKER_REGISTRY}/fitness-ai-service:${IMAGE_TAG}
     build:
       context: ./aiservice
+      dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
       - .env.prod
-    ports:
-      - "8083:8083"
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      AI_SERVICE_MONGO_URI: ${AI_SERVICE_MONGO_URI}
+      EUREKA_URL: ${EUREKA_URL}
+    ports:
+      - "127.0.0.1:8083:8083"
+    networks:
+      - fitness-net
     depends_on:
-      - mongodb
-      - eureka-server
-
-volumes:
-  postgres_data:
-  mongo_data:
+      mongodb:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8083/actuator/health/readiness" ]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 120s

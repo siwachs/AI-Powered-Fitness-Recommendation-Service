@@ -1,7 +1,20 @@
+name: fitness-dev
+
+networks:
+  fitness-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mongo_data:
+
 services:
 
+  # -- Infrastructure (always started) --
+
   postgres:
-    image: postgres:16
+    image: postgres:16-alpine
+    container_name: fitness-postgres-dev
     env_file:
       - .env.dev
     environment:
@@ -12,25 +25,150 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - fitness-net
+    healthcheck:
+      test: [ "CMD", "pg_isready -U ${POSTGRES_USER} -d postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+  
+  
   mongodb:
     image: mongo:8
+    container_name: fitness-mongodb-dev
     env_file:
       - .env.dev
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     ports:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+      - ./docker/mongodb/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - fitness-net
+    healthcheck:
+      test: [
+        "CMD", "mongosh",
+        "-u", "${MONGO_ROOT_USER}",
+        "-p", "${MONGO_ROOT_PASSWORD}",
+        "--authenticationDatabase", "admin",
+        "--eval", "db.adminCommand('ping').ok"
+      ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
 
   eureka-server:
     build:
-      context: ./eureka-service
+      context: ./eurekaservice
+      dockerfile: Dockerfile
+    container_name: fitness-eureka-dev
     ports:
       - "8761:8761"
+    networks:
+      - fitness-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
 
-volumes:
-  postgres_data:
-  mongo_data:
+  # ── App services (only with --profile full) ─────────
+  user-service:
+    profiles: [ full ]
+    build:
+      context: ./userservice
+      dockerfile: Dockerfile
+    container_name: fitness-user-dev
+    env_file:
+      - .env.dev
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      USER_SERVICE_DB_HOST: postgres
+      USER_SERVICE_DB_PORT: 5432
+      USER_SERVICE_DB_NAME: userdb
+      USER_SERVICE_DB_USER: ${USER_SERVICE_DB_USER}
+      USER_SERVICE_DB_PASSWORD: ${USER_SERVICE_DB_PASSWORD}
+      USER_SERVICE_DDL_AUTO: update
+      EUREKA_URL: ${EUREKA_URL}
+    ports:
+      - "8081:8081"
+    networks:
+      - fitness-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health/readiness" ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
+  activity-service:
+    profiles: [ full ]
+    build:
+      context: ./activityservice
+      dockerfile: Dockerfile
+    container_name: fitness-activity-dev
+    env_file:
+      - .env.dev
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      ACTIVITY_SERVICE_MONGO_URI: ${ACTIVITY_SERVICE_MONGO_URI}
+      EUREKA_URL: ${EUREKA_URL}
+    ports:
+      - "8082:8082"
+    networks:
+      - fitness-net
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8082/actuator/health/readiness" ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
+  ai-service:
+    profiles: [ full ]
+    build:
+      context: ./aiservice
+      dockerfile: Dockerfile
+    container_name: fitness-ai-dev
+    env_file:
+      - .env.dev
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      AI_SERVICE_MONGO_URI: ${AI_SERVICE_MONGO_URI}
+      EUREKA_URL: ${EUREKA_URL}
+    ports:
+      - "8083:8083"
+    networks:
+      - fitness-net
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8083/actuator/health/readiness" ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 90s

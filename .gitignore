@@ -14,4 +14,7 @@
 .DS_Store
 Thumbs.db
 
-.env.prod
+### Env / secrets ###
+.env
+.env.*
+!.env.example

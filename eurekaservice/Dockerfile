@@ -24,10 +24,10 @@ RUN chown spring:spring app.jar
 
 USER spring
 
-ENV SERVER_PORT=8083
+ENV SERVER_PORT=8761
 ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
-  CMD curl -f http://localhost:8083/actuator/health/liveness || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8761/ || exit 1
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -1,7 +1,7 @@
 spring:
   data:
     mongodb:
-      uri: ${ACTIVITY_SERVICE_MONGO_URI}
+      uri: ${AI_SERVICE_MONGO_URI}
 
 eureka:
   client:

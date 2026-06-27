@@ -6,7 +6,8 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: ${USER_SERVICE_DDL_AUTO:validate}
+      ddl-auto: ${USER_SERVICE_DDL_AUTO:update}
+    show-sql: true
 
 eureka:
   client:
