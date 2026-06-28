@@ -1,13 +1,15 @@
 #!/bin/bash
 set -euo pipefail
 
+: "${USER_SERVICE_DB_NAME:?USER_SERVICE_DB_NAME must be set}"
+
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-    SELECT 'CREATE DATABASE userdb'
-    WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'userdb')\gexec
+    SELECT 'CREATE DATABASE ${USER_SERVICE_DB_NAME}'
+    WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${USER_SERVICE_DB_NAME}')\gexec
 EOSQL
 
-# Only create app user if credentials are provided (prod)
-if [[ -n "${USER_SERVICE_DB_USER:-}" && -n "${USER_SERVICE_DB_PASSWORD:-}" ]]; then
+# Create app user only when different from postgres admin (prod). Dev uses POSTGRES_USER for both.
+if [[ -n "${USER_SERVICE_DB_USER:-}" && -n "${USER_SERVICE_DB_PASSWORD:-}" && "${USER_SERVICE_DB_USER}" != "${POSTGRES_USER}" ]]; then
   psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
     DO \$\$
     BEGIN
@@ -16,10 +18,10 @@ if [[ -n "${USER_SERVICE_DB_USER:-}" && -n "${USER_SERVICE_DB_PASSWORD:-}" ]]; t
       END IF;
     END
     \$\$;
-    GRANT ALL PRIVILEGES ON DATABASE userdb TO ${USER_SERVICE_DB_USER};
+    GRANT ALL PRIVILEGES ON DATABASE ${USER_SERVICE_DB_NAME} TO ${USER_SERVICE_DB_USER};
 EOSQL
 
-  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "userdb" <<-EOSQL
+  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "${USER_SERVICE_DB_NAME}" <<-EOSQL
     GRANT ALL ON SCHEMA public TO ${USER_SERVICE_DB_USER};
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${USER_SERVICE_DB_USER};
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${USER_SERVICE_DB_USER};

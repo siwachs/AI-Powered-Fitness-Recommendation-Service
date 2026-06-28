@@ -1,7 +1,7 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://mongo:mongo@localhost:27017/aidb?authSource=admin
+      uri: mongodb://mongo:mongo@localhost:27017/recommendationdb?authSource=admin
 
 eureka:
   client:
