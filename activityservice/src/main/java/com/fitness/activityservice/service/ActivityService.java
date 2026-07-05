@@ -1,11 +1,13 @@
 package com.fitness.activityservice.service;
 
+import com.fitness.activityservice.config.RabbitMQProperties;
 import com.fitness.activityservice.dto.request.ActivityRequest;
 import com.fitness.activityservice.dto.response.ActivityResponse;
 import com.fitness.activityservice.entity.Activity;
 import com.fitness.activityservice.repository.ActivityRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,14 +16,13 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ActivityService {
+    private final RabbitTemplate rabbitTemplate;
+
     private final ActivityRepository repository;
     private final UserValidationService userValidationService;
-
-    @Value("${app.rabbitmq.exchanges.fitness}")
-    private String exchange;
-    @Value("${app.rabbitmq.routing-keys.activity}")
-    private String routingKey;
+    private final RabbitMQProperties rabbitMQProperties;
 
     private ActivityResponse toResponse(Activity activity) {
         ActivityResponse response = new ActivityResponse();
@@ -55,6 +56,15 @@ public class ActivityService {
                 .build();
 
         Activity savedActivity = repository.save(activity);
+
+        // Publish to RabbitMQ for AI Processing
+        try {
+            String exchange = rabbitMQProperties.getExchanges().getFitness();
+            String routingKey = rabbitMQProperties.getRoutingKeys().getActivity();
+            rabbitTemplate.convertAndSend(exchange, routingKey, savedActivity);
+        } catch (Exception e) {
+            log.error("Failed to publish activity to RabbitMQ : ", e);
+        }
 
         return toResponse(savedActivity);
     }

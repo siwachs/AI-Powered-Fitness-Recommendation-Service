@@ -65,8 +65,11 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    entrypoint: [ "/docker/rabbitmq/init/docker-entrypoint-wrapper.sh" ]
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+      - ./docker/rabbitmq/init/docker-entrypoint-wrapper.sh:/docker/rabbitmq/init/docker-entrypoint-wrapper.sh:ro
+      - ./docker/rabbitmq/init/01-setup.sh:/docker/rabbitmq/init/01-setup.sh:ro
       - ./docker/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
     networks:
       - fitness-net
