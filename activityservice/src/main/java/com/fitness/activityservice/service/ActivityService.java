@@ -5,6 +5,7 @@ import com.fitness.activityservice.dto.response.ActivityResponse;
 import com.fitness.activityservice.entity.Activity;
 import com.fitness.activityservice.repository.ActivityRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +17,11 @@ import java.util.stream.Collectors;
 public class ActivityService {
     private final ActivityRepository repository;
     private final UserValidationService userValidationService;
+
+    @Value("${app.rabbitmq.exchanges.fitness}")
+    private String exchange;
+    @Value("${app.rabbitmq.routing-keys.activity}")
+    private String routingKey;
 
     private ActivityResponse toResponse(Activity activity) {
         ActivityResponse response = new ActivityResponse();

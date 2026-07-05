@@ -57,6 +57,26 @@ services:
       retries: 10
       start_period: 30s
 
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: fitness-rabbitmq-dev
+    env_file:
+      - .env.dev
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./docker/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    networks:
+      - fitness-net
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
   eureka-server:
     image: ${DOCKER_REGISTRY}/fitness-eureka-server:${IMAGE_TAG}
     build:
@@ -121,6 +141,10 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       ACTIVITY_SERVICE_MONGO_URI: ${ACTIVITY_SERVICE_MONGO_URI}
       EUREKA_URL: ${EUREKA_URL}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
     ports:
       - "127.0.0.1:8082:8082"
     networks:
@@ -131,6 +155,8 @@ services:
       eureka-server:
         condition: service_healthy
       user-service:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     deploy:
       resources:
@@ -155,6 +181,10 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       AI_SERVICE_MONGO_URI: ${AI_SERVICE_MONGO_URI}
       EUREKA_URL: ${EUREKA_URL}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
     ports:
       - "127.0.0.1:8083:8083"
     networks:
@@ -163,6 +193,8 @@ services:
       mongodb:
         condition: service_healthy
       eureka-server:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     deploy:
       resources:
