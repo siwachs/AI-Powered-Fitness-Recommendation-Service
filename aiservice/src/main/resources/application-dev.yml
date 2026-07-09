@@ -2,6 +2,11 @@ spring:
   data:
     mongodb:
       uri: mongodb://mongo:mongo@localhost:27017/recommendationdb?authSource=admin
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: rabbitmq
+    password: rabbitmq
 
 eureka:
   client:

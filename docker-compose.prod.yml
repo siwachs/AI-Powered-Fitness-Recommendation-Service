@@ -68,8 +68,6 @@ services:
     entrypoint: [ "/docker/rabbitmq/init/docker-entrypoint-wrapper.sh" ]
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-      - ./docker/rabbitmq/init/docker-entrypoint-wrapper.sh:/docker/rabbitmq/init/docker-entrypoint-wrapper.sh:ro
-      - ./docker/rabbitmq/init/01-setup.sh:/docker/rabbitmq/init/01-setup.sh:ro
       - ./docker/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
     networks:
       - fitness-net
@@ -79,6 +77,22 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+
+  rabbitmq-init:
+    image: rabbitmq:3.13-management-alpine
+    container_name: fitness-rabbitmq-init
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - .env.prod
+    volumes:
+      - ./docker/rabbitmq/init/01-import-topology.sh:/init.sh:ro
+      - ./docker/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    networks:
+      - fitness-net
+    entrypoint: [ "/bin/bash", "/init.sh" ]
+    restart: "no"
 
   eureka-server:
     image: ${DOCKER_REGISTRY}/fitness-eureka-server:${IMAGE_TAG}
