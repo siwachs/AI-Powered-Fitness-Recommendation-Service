@@ -1,4 +1,4 @@
-package com.fitness.aiservice.config;
+package com.fitness.aiservice.config.rabbitmq;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.Binding;
@@ -13,18 +13,18 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RequiredArgsConstructor
 public class RabbitMQConfig {
-    private final RabbitMQProperties rabbitMQProperties;
+    private final RabbitMQProperties properties;
 
 
     @Bean
     public Queue activityQueue() {
         // durable: if RabbitMQ restart the queue message won't be lost
-        return new Queue(rabbitMQProperties.getQueues().getActivity(), true);
+        return new Queue(properties.getQueues().getActivity(), true);
     }
 
     @Bean
     public DirectExchange activityExchange() {
-        return new DirectExchange(rabbitMQProperties.getExchanges().getFitness());
+        return new DirectExchange(properties.getExchanges().getFitness());
     }
 
     @Bean
@@ -32,7 +32,7 @@ public class RabbitMQConfig {
         return BindingBuilder
                 .bind(activityQueue)
                 .to(activityExchange)
-                .with(rabbitMQProperties.getRoutingKeys().getActivity());
+                .with(properties.getRoutingKeys().getActivity());
     }
 
     @Bean

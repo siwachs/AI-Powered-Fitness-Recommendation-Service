@@ -1,4 +1,4 @@
-package com.fitness.aiservice.config;
+package com.fitness.aiservice.config.rabbitmq;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
