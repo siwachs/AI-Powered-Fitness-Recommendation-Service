@@ -61,7 +61,7 @@ services:
     image: rabbitmq:3.13-management-alpine
     container_name: fitness-rabbitmq-dev
     env_file:
-      - .env.dev
+      - .env.prod
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
@@ -109,6 +109,22 @@ services:
       retries: 10
       start_period: 60s
 
+  config-server:
+    build:
+      context: ./configserver
+      dockerfile: Dockerfile
+    container_name: fitness-config-dev
+    ports:
+      - "8888:8888"
+    networks:
+      - fitness-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
   user-service:
     image: ${DOCKER_REGISTRY}/fitness-user-service:${IMAGE_TAG}
     build:
@@ -126,6 +142,7 @@ services:
       USER_SERVICE_DB_PASSWORD: ${USER_SERVICE_DB_PASSWORD}
       USER_SERVICE_DDL_AUTO: validate
       EUREKA_URL: ${EUREKA_URL}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
     ports:
       - "127.0.0.1:8081:8081"
     networks:
@@ -134,6 +151,8 @@ services:
       postgres:
         condition: service_healthy
       eureka-server:
+        condition: service_healthy
+      config-server:
         condition: service_healthy
     deploy:
       resources:
@@ -162,6 +181,7 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
     ports:
       - "127.0.0.1:8082:8082"
     networks:
@@ -174,6 +194,8 @@ services:
       user-service:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      config-server:
         condition: service_healthy
     deploy:
       resources:
@@ -204,6 +226,7 @@ services:
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       GEMINI_API_URL: ${GEMINI_API_URL}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
     ports:
       - "127.0.0.1:8083:8083"
     networks:
@@ -214,6 +237,8 @@ services:
       eureka-server:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      config-server:
         condition: service_healthy
     deploy:
       resources:

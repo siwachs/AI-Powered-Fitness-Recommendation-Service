@@ -1,0 +1,10 @@
+spring:
+  data:
+    mongodb:
+      uri: ${ACTIVITY_SERVICE_MONGO_URI}
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    virtual-host: ${RABBITMQ_VHOST:/}

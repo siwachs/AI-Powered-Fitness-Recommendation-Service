@@ -8,19 +8,3 @@ spring:
     hibernate:
       ddl-auto: ${USER_SERVICE_DDL_AUTO:update}
     show-sql: true
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_URL}
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      probes:
-        enabled: true
-      show-details: never

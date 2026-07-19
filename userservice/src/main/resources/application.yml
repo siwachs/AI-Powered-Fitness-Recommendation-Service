@@ -1,6 +1,5 @@
 spring:
   application:
     name: user-service
-
-server:
-  port: 8081
+  config:
+    import: "optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}"

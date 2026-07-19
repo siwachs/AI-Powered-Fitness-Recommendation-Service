@@ -1,0 +1,16 @@
+server:
+  port: 8082
+
+app:
+  rabbitmq:
+    exchanges:
+      fitness: fitness.exchange
+    queues:
+      activity: activity.queue
+    routing-keys:
+      activity: activity.tracking
+
+management:
+  health:
+    rabbit:
+      enabled: true

@@ -1,0 +1,16 @@
+server:
+  port: 8083
+
+app:
+  rabbitmq:
+    exchanges:
+      fitness: fitness.exchange
+    queues:
+      activity: activity.queue
+    routing-keys:
+      activity: activity.tracking
+
+  gemini:
+    api:
+      url: ${GEMINI_API_URL}
+      key: ${GEMINI_API_KEY}

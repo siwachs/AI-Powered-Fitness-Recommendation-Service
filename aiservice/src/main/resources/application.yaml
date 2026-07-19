@@ -1,20 +1,5 @@
 spring:
   application:
     name: ai-service
-
-server:
-  port: 8083
-
-app:
-  rabbitmq:
-    exchanges:
-      fitness: fitness.exchange
-    queues:
-      activity: activity.queue
-    routing-keys:
-      activity: activity.tracking
-
-  gemini:
-    api:
-      url: ${GEMINI_API_URL}
-      key: ${GEMINI_API_KEY}
+  config:
+    import: "optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
