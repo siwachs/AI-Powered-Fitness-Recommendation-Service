@@ -1,3 +1,42 @@
+server:
+  port: 8080
+
 spring:
   application:
-    name: gatewayservice
+    name: gateway-service
+
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id: user-service
+              uri: lb://user-service
+              predicates:
+                - Path=/api/v1/users/**
+
+            - id: activity-service
+              uri: lb://activity-service
+              predicates:
+                - Path=/api/v1/activities/**
+
+            - id: ai-service
+              uri: lb://ai-service
+              predicates:
+                - Path=/api/v1/recommendations/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never

@@ -136,6 +136,24 @@ services:
       retries: 10
       start_period: 40s
 
+  gateway-service:
+    build:
+      context: ./gatewayservice
+      dockerfile: Dockerfile
+    container_name: fitness-gateway-dev
+    env_file:
+      - .env.dev
+    ports:
+      - "8080:8080"
+    networks:
+      - fitness-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health/liveness" ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
   # ── App services (only with --profile full) ─────────
   user-service:
     profiles: [ full ]

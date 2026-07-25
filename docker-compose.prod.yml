@@ -7,6 +7,7 @@ networks:
 volumes:
   postgres_data:
   mongo_data:
+  rabbitmq_data:
 
 services:
 
@@ -59,13 +60,12 @@ services:
 
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
-    container_name: fitness-rabbitmq-dev
+    restart: unless-stopped
     env_file:
       - .env.prod
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
-    entrypoint: [ "/docker/rabbitmq/init/docker-entrypoint-wrapper.sh" ]
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
       - ./docker/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
@@ -80,7 +80,6 @@ services:
 
   rabbitmq-init:
     image: rabbitmq:3.13-management-alpine
-    container_name: fitness-rabbitmq-init
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -96,9 +95,6 @@ services:
 
   eureka-server:
     image: ${DOCKER_REGISTRY}/fitness-eureka-server:${IMAGE_TAG}
-    build:
-      context: ./eurekaservice
-      dockerfile: Dockerfile
     restart: unless-stopped
     networks:
       - fitness-net
@@ -110,26 +106,39 @@ services:
       start_period: 60s
 
   config-server:
-    build:
-      context: ./configserver
-      dockerfile: Dockerfile
-    container_name: fitness-config-dev
-    ports:
-      - "8888:8888"
+    image: ${DOCKER_REGISTRY}/fitness-config-server:${IMAGE_TAG}
+    restart: unless-stopped
     networks:
       - fitness-net
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
-      interval: 10s
+      interval: 15s
       timeout: 5s
       retries: 10
-      start_period: 40s
+      start_period: 60s
+
+  gateway-service:
+    image: ${DOCKER_REGISTRY}/fitness-gateway-service:${IMAGE_TAG}
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    ports:
+      - "8080:8080"
+    networks:
+      - fitness-net
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health/liveness" ]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
 
   user-service:
     image: ${DOCKER_REGISTRY}/fitness-user-service:${IMAGE_TAG}
-    build:
-      context: ./userservice
-      dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
       - .env.prod
@@ -167,9 +176,6 @@ services:
 
   activity-service:
     image: ${DOCKER_REGISTRY}/fitness-activity-service:${IMAGE_TAG}
-    build:
-      context: ./activityservice
-      dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
       - .env.prod
@@ -210,9 +216,6 @@ services:
 
   ai-service:
     image: ${DOCKER_REGISTRY}/fitness-ai-service:${IMAGE_TAG}
-    build:
-      context: ./aiservice
-      dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
       - .env.prod
