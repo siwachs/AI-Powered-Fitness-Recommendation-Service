@@ -8,7 +8,7 @@ spring:
   cloud:
     gateway:
       server:
-        webmvc:
+        webflux:
           routes:
             - id: user-service
               uri: lb://user-service
@@ -27,6 +27,8 @@ spring:
 
 eureka:
   client:
+    register-with-eureka: false
+    fetch-registry: true
     service-url:
       defaultZone: ${EUREKA_URL}
 
