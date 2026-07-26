@@ -1,0 +1,28 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: user-service
+              uri: lb://user-service
+              predicates:
+                - Path=/api/v1/users/**
+
+            - id: activity-service
+              uri: lb://activity-service
+              predicates:
+                - Path=/api/v1/activities/**
+
+            - id: ai-service
+              uri: lb://ai-service
+              predicates:
+                - Path=/api/v1/recommendations/**
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: true
