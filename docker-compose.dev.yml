@@ -30,7 +30,7 @@ services:
     networks:
       - fitness-net
     healthcheck:
-      test: [ "CMD", "pg_isready -U ${POSTGRES_USER} -d postgres" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d postgres" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -154,6 +154,36 @@ services:
         condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health/liveness" ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
+  
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.0
+    container_name: fitness-keycloak-dev
+    command: [ "start-dev" ]
+    env_file:
+      - .env.dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${KEYCLOAK_DB_NAME}
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_HEALTH_ENABLED: "true"
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME}
+    ports:
+      - "8180:8080"
+    networks:
+      - fitness-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000" ]
       interval: 15s
       timeout: 5s
       retries: 10

@@ -5,8 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 public class RegisterRequest {
+    private UUID keycloakId;
+
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid Email format")
     private String email;

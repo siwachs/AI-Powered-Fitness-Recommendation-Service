@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -20,6 +21,7 @@ public class UserService {
         UserResponse response = new UserResponse();
 
         response.setId(user.getId());
+        response.setKeycloakId(user.getKeycloakId());
         response.setEmail(user.getEmail());
         response.setFirstName(user.getFirstName());
         response.setLastName(user.getLastName());
@@ -30,11 +32,13 @@ public class UserService {
     }
 
     public UserResponse registerUser(RegisterRequest request) {
-        if (repository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+        Optional<User> existingUser = repository.findByEmail(request.getEmail());
+        if (existingUser.isPresent()) {
+            return toResponse(existingUser.get());
         }
 
         User user = new User();
+        user.setKeycloakId(request.getKeycloakId());
         user.setEmail(request.getEmail());
         user.setPassword(request.getPassword());
         user.setFirstName(request.getFirstName());
@@ -50,8 +54,8 @@ public class UserService {
         );
     }
 
-    public Boolean existByUserId(UUID userId) {
-        log.info("Calling User validation API for userId: {}", userId);
-        return repository.existsById(userId);
+    public Boolean existByKeycloakId(UUID keycloakId) {
+        log.info("Calling User validation API for keycloakId: {}", keycloakId);
+        return repository.existsByKeycloakId(keycloakId);
     }
 }
