@@ -40,14 +40,14 @@ public class ActivityService {
         return response;
     }
 
-    public ActivityResponse trackActivity(ActivityRequest request) {
-        boolean isValidUser = userValidationService.validateUser(request.getUserId());
+    public ActivityResponse trackActivity(ActivityRequest request, UUID keycloakId) {
+        boolean isValidUser = userValidationService.validateUser(keycloakId);
         if (!isValidUser) {
-            throw new RuntimeException("Invalid User: " + request.getUserId());
+            throw new IllegalArgumentException("Invalid User: " + keycloakId);
         }
 
         Activity activity = Activity.builder()
-                .userId(request.getUserId())
+                .userId(keycloakId)
                 .type(request.getType())
                 .duration(request.getDuration())
                 .caloriesBurn(request.getCaloriesBurn())

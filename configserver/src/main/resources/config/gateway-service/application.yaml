@@ -6,7 +6,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8180/realms/fitness-oauth2/.well-known/openid-configuration
+          issuer-uri: ${KEYCLOAK_ISSUER_URI}
   cloud:
     gateway:
       server:

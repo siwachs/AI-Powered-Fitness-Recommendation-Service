@@ -14,18 +14,18 @@ import java.util.UUID;
 public class UserValidationService {
     private final WebClient userServiceWebClient;
 
-    public boolean validateUser(UUID userId) {
-        log.info("Calling validateUser for userId: {}", userId);
+    public boolean validateUser(UUID keycloakId) {
+        log.info("Calling validateUser for userId: {}", keycloakId);
         try {
             return Boolean.TRUE.equals(userServiceWebClient.get()
-                    .uri("/api/v1/users/{userId}/validate", userId)
+                    .uri("/api/v1/users/{ keycloakId}/validate", keycloakId)
                     .retrieve()
                     .bodyToMono(Boolean.class)
                     .block()); // WebClient = Reactive and block() = Blocking
         } catch (WebClientResponseException.NotFound e) {
-            throw new RuntimeException("User Not Found: " + userId);
+            throw new RuntimeException("User Not Found: " + keycloakId);
         } catch (WebClientResponseException.BadRequest e) {
-            throw new RuntimeException("Invalid Request: " + userId);
+            throw new RuntimeException("Invalid Request: " + keycloakId);
         }
     }
 }

@@ -5,6 +5,7 @@ import com.fitness.userservice.dto.response.UserResponse;
 import com.fitness.userservice.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,13 +18,20 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserResponse> getUser(@PathVariable UUID userId) {
+    public ResponseEntity<UserResponse> getUser(
+            @PathVariable
+            UUID userId) {
         return ResponseEntity.ok(userService.getUser(userId));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(userService.registerUser(request));
+    public ResponseEntity<UserResponse> registerUser(
+            @Valid
+            @RequestBody
+            RegisterRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(userService.registerUser(request));
     }
 
     @GetMapping("/{keycloakId}/validate")

@@ -20,20 +20,20 @@ import java.util.UUID;
 public class UserService {
     private final WebClient userServiceWebClient;
 
-    public Mono<Boolean> validateUser(UUID userId) {
-        log.info("Calling validateUser for userId: {}", userId);
+    public Mono<Boolean> validateUser(UUID keycloakId) {
+        log.info("Calling validateUser for userId: {}", keycloakId);
 
         return userServiceWebClient.get()
-                .uri("/api/v1/users/{userId}/validate", userId)
+                .uri("/api/v1/users/{keycloakId}/validate", keycloakId)
                 .retrieve()
                 .bodyToMono(Boolean.class)
                 .onErrorResume(
                         WebClientResponseException.class,
                         e -> {
                             if (e.getStatusCode() == HttpStatus.NOT_FOUND)
-                                return Mono.error(new RuntimeException("User Not Found: " + userId));
+                                return Mono.error(new RuntimeException("User Not Found: " + keycloakId));
                             else if (e.getStatusCode() == HttpStatus.BAD_REQUEST)
-                                return Mono.error(new RuntimeException("Invalid Request: " + userId));
+                                return Mono.error(new RuntimeException("Invalid Request: " + keycloakId));
                             return Mono.error(new RuntimeException("Unexpected Error: " + e.getMessage()));
                         }
                 );
@@ -47,14 +47,13 @@ public class UserService {
 
             RegisterRequest registerRequest = new RegisterRequest();
             registerRequest.setEmail(claims.getStringClaim("email"));
-            registerRequest.setKeycloakId(UUID.fromString(claims.getStringClaim("keycloakId")));
-            registerRequest.setPassword("dummy@123123");
+            registerRequest.setKeycloakId(UUID.fromString(claims.getStringClaim("sub")));
             registerRequest.setFirstName(claims.getStringClaim("given_name"));
             registerRequest.setLastName(claims.getStringClaim("family_name"));
 
             return registerRequest;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to JWT claims", e);
             return null;
         }
     }

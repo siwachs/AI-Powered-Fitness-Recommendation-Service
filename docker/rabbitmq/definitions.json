@@ -30,7 +30,7 @@
       "vhost": "/",
       "destination": "activity.queue",
       "destination_type": "queue",
-      "routing_key": "activity.created",
+      "routing_key": "activity.tracking",
       "arguments": {}
     }
   ]

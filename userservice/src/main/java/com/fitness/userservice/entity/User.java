@@ -19,9 +19,7 @@ public class User {
 
     @Column(nullable = false, unique = true, length = 255)
     private String email;
-    @Column(nullable = false)
-    private String password;
-
+    
     private String firstName;
     private String lastName;
 

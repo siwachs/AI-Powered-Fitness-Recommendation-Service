@@ -3,6 +3,7 @@ package com.fitness.userservice.service;
 import com.fitness.userservice.dto.request.RegisterRequest;
 import com.fitness.userservice.dto.response.UserResponse;
 import com.fitness.userservice.entity.User;
+import com.fitness.userservice.exception.UserNotFoundException;
 import com.fitness.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +41,6 @@ public class UserService {
         User user = new User();
         user.setKeycloakId(request.getKeycloakId());
         user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword());
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
 
@@ -50,7 +50,7 @@ public class UserService {
     public UserResponse getUser(UUID userId) {
         return toResponse(
                 repository.findById(userId)
-                        .orElseThrow(() -> new RuntimeException("This user does not exist"))
+                        .orElseThrow(() -> new UserNotFoundException(userId))
         );
     }
 
