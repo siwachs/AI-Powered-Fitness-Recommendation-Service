@@ -1,6 +1,6 @@
 # Activity Service (`activityservice`)
 
-Fitness activity tracking microservice backed by **MongoDB** and **Spring AMQP (RabbitMQ)**. Records user workout sessions, validates user existence against `userservice`, and publishes activity events to RabbitMQ for asynchronous AI analysis.
+Fitness activity tracking microservice backed by MongoDB and Spring AMQP (RabbitMQ). Records user workout sessions, validates user existence against `userservice`, and publishes activity events to RabbitMQ for asynchronous AI analysis.
 
 ---
 
@@ -17,7 +17,7 @@ Fitness activity tracking microservice backed by **MongoDB** and **Spring AMQP (
 
 ---
 
-## Domain Model & Supported Activity Types
+## Domain Model and Supported Activity Types
 
 ### Supported `ActivityType` Enums
 - `RUNNING`
@@ -74,7 +74,7 @@ Validates the user, stores the activity in MongoDB, and triggers AI analysis via
 - **Method:** `POST`
 - **Headers:**
   - `Content-Type: application/json`
-  - `X-User-ID: <keycloak-user-uuid>` *(Automatically populated by Gateway when using Bearer token)*
+  - `X-User-ID: <keycloak-user-uuid>` (Automatically populated by Gateway when using Bearer token)
 
 #### Request Body
 ```json
@@ -97,7 +97,7 @@ Validates the user, stores the activity in MongoDB, and triggers AI analysis via
 | Field | Type | Description |
 |---|---|---|
 | `type` | String (Enum) | Activity type (e.g. `RUNNING`, `WEIGHT_TRAINING`, `HIIT`) |
-| `duration` | Integer | Workout duration in **minutes** |
+| `duration` | Integer | Workout duration in minutes |
 | `caloriesBurn` | Integer | Estimated calories burned |
 | `startTime` | ISO-8601 String | When the workout began (`YYYY-MM-DDTHH:mm:ss`) |
 | `additionalMetrics` | Map / JSON Object | Flexible custom metrics (heart rate, distance, sets, cadence, etc.) |

@@ -1,6 +1,6 @@
 # User Service (`userservice`)
 
-User management microservice backed by **PostgreSQL** and **Spring Data JPA**. Manages user identity profiles, Keycloak user synchronization, and user existence validation for other services.
+User management microservice backed by PostgreSQL and Spring Data JPA. Manages user identity profiles, Keycloak user synchronization, and user existence validation for other services.
 
 ---
 
@@ -16,7 +16,7 @@ User management microservice backed by **PostgreSQL** and **Spring Data JPA**. M
 
 ---
 
-## Database Model & Schema
+## Database Model and Schema
 
 **Table:** `users`
 
@@ -134,7 +134,6 @@ Checks if a user exists by their Keycloak UUID. Used by `activityservice` and `g
 ```json
 true
 ```
-*(or `false` if the Keycloak UUID does not exist)*
 
 #### cURL Example
 ```bash
@@ -145,7 +144,7 @@ curl -X GET http://localhost:8081/api/v1/users/3fa85f64-5717-4562-b3fc-2c963f66a
 
 ## Running the Service
 
-### Hybrid Dev Mode (Runs on Host against Docker Postgres)
+### Hybrid Dev Mode
 ```bash
 cd userservice
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev

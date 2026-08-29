@@ -1,36 +1,36 @@
 # AI Recommendation Service (`aiservice`)
 
-AI-driven fitness intelligence microservice powered by **Google Gemini AI**, **Spring AMQP (RabbitMQ)**, and **MongoDB**. Asynchronously generates personalized coaching recommendations, performance analyses, progression suggestions, and safety tips for completed workouts.
+AI-driven fitness intelligence microservice powered by Google Gemini AI, Spring AMQP (RabbitMQ), and MongoDB. Asynchronously generates personalized coaching recommendations, performance analyses, progression suggestions, and safety tips for completed workouts.
 
 ---
 
 ## Architectural Flow
 
 ```
-   ┌──────────────────────────────────────────────┐
-   │            Activity Service                  │
-   │  Publishes workout event to RabbitMQ         │
-   └──────────────────────┬───────────────────────┘
-                          │
-                          ▼
+   +----------------------------------------------+
+   |            Activity Service                  |
+   |  Publishes workout event to RabbitMQ         |
+   +----------------------+-----------------------+
+                          |
+                          v
             [RabbitMQ: activity.queue]
-                          │
-                          ▼
-   ┌──────────────────────────────────────────────┐
-   │                  AI SERVICE                  │
-   │                                              │
-   │  1. @RabbitListener consumes Activity event │
-   │  2. Builds contextual prompt                 │
-   │  3. Invokes Google Gemini API (WebClient)    │
-   │  4. Extracts JSON analysis, improvements,    │
-   │     suggestions, & safety guidelines         │
-   │  5. Persists Recommendation in MongoDB       │
-   └──────────────────────┬───────────────────────┘
-                          │
-                          ▼
+                          |
+                          v
+   +----------------------------------------------+
+   |                  AI SERVICE                  |
+   |                                              |
+   |  1. @RabbitListener consumes Activity event  |
+   |  2. Builds contextual prompt                 |
+   |  3. Invokes Google Gemini API (WebClient)    |
+   |  4. Extracts JSON analysis, improvements,    |
+   |     suggestions, & safety guidelines         |
+   |  5. Persists Recommendation in MongoDB       |
+   +----------------------+-----------------------+
+                          |
+                          v
              [MongoDB: recommendations]
-                          │
-                          ▼
+                          |
+                          v
               Queried via REST APIs:
    - GET /api/v1/recommendations/user/{userId}
    - GET /api/v1/recommendations/activity/{activityId}
@@ -51,7 +51,7 @@ AI-driven fitness intelligence microservice powered by **Google Gemini AI**, **S
 
 ---
 
-## Google Gemini AI Prompt & Analysis Pipeline
+## Google Gemini AI Prompt and Analysis Pipeline
 
 ### 1. AI Prompt Construction
 When an activity event arrives, `ActivityAiService` constructs a prompt requesting structured JSON:
@@ -77,8 +77,8 @@ Analyze this fitness activity and provide detailed recommendations in the follow
 }
 ```
 
-### 2. Response Parsing & Normalization
-The service strips markdown formatting (e.g. ```` ```json ```` fences), safely parses JSON nodes, formats composite analysis strings, and stores structured lists for actionable insights.
+### 2. Response Parsing and Normalization
+The service strips markdown formatting, parses JSON nodes, formats composite analysis strings, and stores structured lists for actionable insights.
 
 ---
 

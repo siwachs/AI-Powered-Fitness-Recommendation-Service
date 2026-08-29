@@ -6,20 +6,21 @@ Spring Cloud Netflix Eureka service registry that manages dynamic service regist
 
 ## Overview
 
-The Eureka Server enables decoupled, location-transparent communication between microservices. Instead of hardcoding hostnames and IP addresses, services register their network locations at startup and resolve downstream endpoints using virtual service names (e.g., `lb://user-service`, `http://USER-SERVICE`).
+The Eureka Server enables decoupled communication between microservices. Services register their network locations at startup and resolve downstream endpoints using virtual service names (for example `lb://user-service` or `http://USER-SERVICE`).
 
 ```
-                               ┌─────────────────────────────────┐
-                               │     Eureka Discovery Server     │
-                               │          (Port: 8761)           │
-                               └────────────────┬────────────────┘
-                                                │
-                 ┌──────────────────────────────┼──────────────────────────────┐
-                 ▼                              ▼                              ▼
-        ┌──────────────────┐          ┌───────────────────┐          ┌───────────────────┐
-        │  GATEWAY-SERVICE │          │   USER-SERVICE    │          │ ACTIVITY-SERVICE  │
-        │   (Port: 8080)   │          │   (Port: 8081)    │          │   (Port: 8082)    │
-        └──────────────────┘          └───────────────────┘          └───────────────────┘
+                               +---------------------------------+
+                               |     Eureka Discovery Server     |
+                               |          (Port: 8761)           |
+                               +----------------+----------------+
+                                                |
+                 +------------------------------+------------------------------+
+                 |                              |                              |
+                 v                              v                              v
+        +------------------+          +-------------------+          +-------------------+
+        |  GATEWAY-SERVICE |          |   USER-SERVICE    |          | ACTIVITY-SERVICE  |
+        |   (Port: 8080)   |          |   (Port: 8081)    |          |   (Port: 8082)    |
+        +------------------+          +-------------------+          +-------------------+
 ```
 
 ---
@@ -45,14 +46,14 @@ When all microservices are running, Eureka maintains heartbeats and registers th
 | `USER-SERVICE` | `8081` | `GATEWAY-SERVICE`, `ACTIVITY-SERVICE` |
 | `ACTIVITY-SERVICE` | `8082` | `GATEWAY-SERVICE` |
 | `AI-SERVICE` | `8083` | `GATEWAY-SERVICE` |
-| `GATEWAY-SERVICE` | `8080` | *(Client Entry Point - does not self-register, fetches registry)* |
+| `GATEWAY-SERVICE` | `8080` | Client entry point (fetches registry, does not register itself) |
 
 ---
 
-## Verification & Health Check
+## Verification and Health Check
 
 ### 1. Web Dashboard
-Navigate to `http://localhost:8761` in your browser to view active instances, memory usage, uptime, and renewal thresholds.
+Open `http://localhost:8761` in a browser to view active instances, uptime, and renewal status.
 
 ### 2. Actuator Health
 ```bash

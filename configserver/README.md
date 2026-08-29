@@ -1,6 +1,6 @@
 # Config Server (`configserver`)
 
-Spring Cloud Config Server providing centralized, externalized configuration management across all microservices in the **AI-Powered Fitness Recommendation Platform**.
+Spring Cloud Config Server providing centralized, externalized configuration management across all microservices in the fitness platform.
 
 ---
 
@@ -9,18 +9,18 @@ Spring Cloud Config Server providing centralized, externalized configuration man
 The Config Server operates in `native` profile mode, reading configuration files from its local classpath (`classpath:/config/shared` and `classpath:/config/{application}`). Microservices fetch their active configurations at startup based on their `spring.application.name` and active profile (`dev`, `docker`, `prod`).
 
 ```
-                              ┌─────────────────────────────┐
-                              │  Spring Cloud Config Server │
-                              │         (Port: 8888)        │
-                              └──────────────┬──────────────┘
-                                             │
-               ┌─────────────────────────────┼─────────────────────────────┐
-               │                             │                             │
-               ▼                             ▼                             ▼
-       ┌───────────────┐             ┌───────────────┐             ┌───────────────┐
-       │Gateway Service│             │  User Service │             │Activity / AI  │
-       │  (Port: 8080) │             │  (Port: 8081) │             │ (8082 / 8083) │
-       └───────────────┘             └───────────────┘             └───────────────┘
+                              +-----------------------------+
+                              |  Spring Cloud Config Server |
+                              |         (Port: 8888)        |
+                              +--------------+--------------+
+                                             |
+               +-----------------------------+-----------------------------+
+               |                             |                             |
+               v                             v                             v
+       +---------------+             +---------------+             +---------------+
+       |Gateway Service|             |  User Service |             |Activity / AI  |
+       |  (Port: 8080) │             |  (Port: 8081) │             | (8082 / 8083) │
+       +---------------+             +---------------+             +---------------+
 ```
 
 ---
@@ -41,35 +41,35 @@ The Config Server operates in `native` profile mode, reading configuration files
 
 ```
 configserver/src/main/resources/config/
-├── shared/                         # Common configuration loaded by all services
-│   ├── application.yml             # Common actuator & health probes
-│   ├── application-dev.yml         # Dev Eureka URL (localhost:8761)
-│   ├── application-docker.yml      # Docker network Eureka & Config server URLs
-│   └── application-prod.yml        # Production eureka & config server settings
-├── gateway-service/
-│   └── application.yaml            # Port 8080, Keycloak OAuth2 JWT issuer, Route definitions
-├── user-service/
-│   ├── application.yml             # Port 8081
-│   ├── application-dev.yml         # PostgreSQL on localhost:5432
-│   ├── application-docker.yml      # PostgreSQL on postgres:5432
-│   └── application-prod.yml        # Production Postgres with 'validate' DDL
-├── activity-service/
-│   ├── application.yml             # Port 8082, RabbitMQ exchange/queue/key names
-│   ├── application-dev.yml         # MongoDB & RabbitMQ on localhost
-│   ├── application-docker.yml      # MongoDB & RabbitMQ on Docker network
-│   └── application-prod.yml        # Production MongoDB URI & RabbitMQ credentials
-└── ai-service/
-    ├── application.yml             # Port 8083, RabbitMQ bindings, Gemini API properties
-    ├── application-dev.yml         # MongoDB & RabbitMQ on localhost
-    ├── application-docker.yml      # MongoDB & RabbitMQ on Docker network
-    └── application-prod.yml        # Production MongoDB & Gemini credentials
+|-- shared/                         # Common configuration loaded by all services
+|   |-- application.yml             # Common actuator and health probes
+|   |-- application-dev.yml         # Dev Eureka URL (localhost:8761)
+|   |-- application-docker.yml      # Docker network Eureka & Config server URLs
+|   `-- application-prod.yml        # Production Eureka & Config server settings
+|-- gateway-service/
+|   `-- application.yaml            # Port 8080, Keycloak OAuth2 JWT issuer, Route definitions
+|-- user-service/
+|   |-- application.yml             # Port 8081
+|   |-- application-dev.yml         # PostgreSQL on localhost:5432
+|   |-- application-docker.yml      # PostgreSQL on postgres:5432
+|   `-- application-prod.yml        # Production Postgres with validate DDL
+|-- activity-service/
+|   |-- application.yml             # Port 8082, RabbitMQ exchange/queue/key names
+|   |-- application-dev.yml         # MongoDB & RabbitMQ on localhost
+|   |-- application-docker.yml      # MongoDB & RabbitMQ on Docker network
+|   `-- application-prod.yml        # Production MongoDB URI & RabbitMQ credentials
+`-- ai-service/
+    |-- application.yml             # Port 8083, RabbitMQ bindings, Gemini API properties
+    |-- application-dev.yml         # MongoDB & RabbitMQ on localhost
+    |-- application-docker.yml      # MongoDB & RabbitMQ on Docker network
+    `-- application-prod.yml        # Production MongoDB & Gemini credentials
 ```
 
 ---
 
 ## Config Server Endpoints
 
-Microservices and developers can inspect the active configuration served for any service by querying:
+Microservices and developers can inspect the active configuration served for any service:
 
 ### 1. Fetch Service Configuration by Profile
 ```http
@@ -91,7 +91,7 @@ curl http://localhost:8888/activity-service/prod
 curl http://localhost:8888/ai-service/dev
 ```
 
-### 2. Health & Readiness
+### 2. Health and Readiness
 ```bash
 curl http://localhost:8888/actuator/health
 ```
